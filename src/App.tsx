@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, lazy, Suspense, type ReactNode } from "rea
 import {
   Mic,
   MicOff,
+  PhoneOff,
   Settings,
   Key,
   Home,
@@ -1531,54 +1532,72 @@ export default function App() {
                       </div>
 
                       {/* CENTER GLOWING PHYSICAL MICROPHONE ORB ASSEMBLY */}
-                      <div className="relative w-36 h-36 flex items-center justify-center">
-                        
-                        {/* Interactive Ripple Waves expanding behind the button under speaking status */}
+                      <div className="flex items-center justify-center gap-6 relative">
+                        <div className="relative w-36 h-36 flex items-center justify-center">
+                          
+                          {/* Interactive Ripple Waves expanding behind the button under speaking status */}
+                          <AnimatePresence>
+                            {(connectionState === "listening" || connectionState === "speaking") && (
+                              <motion.div
+                                initial={{ scale: 0.9, opacity: 0.4 }}
+                                animate={{ 
+                                  scale: 1.45 + (micLevel + agentLevel) * 1.5, 
+                                  opacity: [0.35, 0] 
+                                }}
+                                transition={{ 
+                                  repeat: Infinity, 
+                                  duration: 1.5,
+                                  ease: "easeOut"
+                                }}
+                                exit={{ opacity: 0 }}
+                                className="absolute w-full h-full rounded-full bg-purple-500/25 blur-sm pointer-events-none"
+                              />
+                            )}
+                          </AnimatePresence>
+
+                          {/* Master Trigger circle button */}
+                          <button
+                            onClick={initiateVoiceSession}
+                            className={`w-28 h-28 rounded-full flex flex-col items-center justify-center relative transition duration-300 ${
+                              connectionState === "idle" 
+                                ? "bg-[#141220] border-2 border-purple-500/20 hover:border-purple-500/40 text-[#e2e0e7] shadow-lg shadow-purple-950/25 hover:scale-[1.01]"
+                                : connectionState === "connecting"
+                                ? "bg-amber-600/20 border-2 border-amber-500/50 text-amber-300 animate-pulse"
+                                : "bg-gradient-to-tr from-purple-600 via-purple-600 to-rose-500 text-white shadow-[0_0_35px_rgba(168,85,247,0.55)] border border-white/20 hover:scale-[0.99]"
+                            }`}
+                          >
+                            {/* Inner glowing mic shape */}
+                            <div className="flex flex-col items-center space-y-1">
+                              {connectionState === "idle" ? (
+                                <MicOff className="w-7 h-7 text-white/30" />
+                              ) : (
+                                <Mic className="w-8 h-8 text-white animate-pulse" />
+                              )}
+                              <span className="text-[8px] font-mono uppercase tracking-widest text-white/60 font-medium">
+                                {connectionState === "idle" && "OFF"}
+                                {connectionState === "connecting" && "SYNC"}
+                                {connectionState === "listening" && "LISTEN"}
+                                {connectionState === "speaking" && "NORA"}
+                              </span>
+                            </div>
+                          </button>
+                        </div>
+
                         <AnimatePresence>
-                          {(connectionState === "listening" || connectionState === "speaking") && (
-                            <motion.div
-                              initial={{ scale: 0.9, opacity: 0.4 }}
-                              animate={{ 
-                                scale: 1.45 + (micLevel + agentLevel) * 1.5, 
-                                opacity: [0.35, 0] 
-                              }}
-                              transition={{ 
-                                repeat: Infinity, 
-                                duration: 1.5,
-                                ease: "easeOut"
-                              }}
-                              exit={{ opacity: 0 }}
-                              className="absolute w-full h-full rounded-full bg-purple-500/25 blur-sm pointer-events-none"
-                            />
+                          {connectionState !== "idle" && (
+                            <motion.button
+                              initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                              animate={{ opacity: 1, scale: 1, x: 0 }}
+                              exit={{ opacity: 0, scale: 0.5, x: 20 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                              onClick={disconnectSession}
+                              className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-tr from-rose-600 via-red-600 to-rose-700 text-white shadow-[0_0_25px_rgba(239,68,68,0.45)] border border-white/20 cursor-pointer"
+                              title="Decline Call"
+                            >
+                              <PhoneOff className="w-6 h-6" />
+                            </motion.button>
                           )}
                         </AnimatePresence>
-
-                        {/* Master Trigger circle button */}
-                        <button
-                          onClick={initiateVoiceSession}
-                          className={`w-28 h-28 rounded-full flex flex-col items-center justify-center relative transition duration-300 ${
-                            connectionState === "idle" 
-                              ? "bg-[#141220] border-2 border-purple-500/20 hover:border-purple-500/40 text-[#e2e0e7] shadow-lg shadow-purple-950/25 hover:scale-[1.01]"
-                              : connectionState === "connecting"
-                              ? "bg-amber-600/20 border-2 border-amber-500/50 text-amber-300 animate-pulse"
-                              : "bg-gradient-to-tr from-purple-600 via-purple-600 to-rose-500 text-white shadow-[0_0_35px_rgba(168,85,247,0.55)] border border-white/20 hover:scale-[0.99]"
-                          }`}
-                        >
-                          {/* Inner glowing mic shape */}
-                          <div className="flex flex-col items-center space-y-1">
-                            {connectionState === "idle" ? (
-                              <MicOff className="w-7 h-7 text-white/30" />
-                            ) : (
-                              <Mic className="w-8 h-8 text-white animate-pulse" />
-                            )}
-                            <span className="text-[8px] font-mono uppercase tracking-widest text-white/60 font-medium">
-                              {connectionState === "idle" && "OFF"}
-                              {connectionState === "connecting" && "SYNC"}
-                              {connectionState === "listening" && "LISTEN"}
-                              {connectionState === "speaking" && "NORA"}
-                            </span>
-                          </div>
-                        </button>
                       </div>
 
                     </div>
@@ -1808,7 +1827,7 @@ export default function App() {
               <div className="config-group">
                 <FieldLabel icon={<MessageSquare />} text="Role Instructions Prompt" />
                 <textarea 
-                  className="nora-input py-2 h-16 resize-none" 
+                  className="nora-input py-2 h-56 resize-y" 
                   value={settings.role} 
                   onChange={(e) => setSettings({ ...settings, role: e.target.value })}
                   placeholder="Describe what Nora should say and do..."
@@ -1890,10 +1909,34 @@ export default function App() {
 
               {/* Lower content (Tap to speak button & Caption) pushed down */}
               <div className="mt-auto flex flex-col items-center pb-12 relative z-10">
-                <motion.button className={`mic-button ${connectionState !== "idle" ? "live" : ""}`} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 500, damping: 16 }} onClick={initiateVoiceSession}>
-                  {connectionState === "idle" ? <Mic /> : <MicOff />}
-                </motion.button>
-                <span className="mic-caption">{connectionState === "idle" ? "Tap to speak" : "Tap to stop"}</span>
+                <div className="flex items-center gap-6">
+                  <motion.button 
+                    className={`mic-button ${connectionState !== "idle" ? "live" : ""}`} 
+                    whileHover={{ scale: 1.08 }} 
+                    whileTap={{ scale: 0.82 }} 
+                    transition={{ type: "spring", stiffness: 500, damping: 16 }} 
+                    onClick={initiateVoiceSession}
+                  >
+                    {connectionState === "idle" ? <Mic /> : <MicOff />}
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {connectionState !== "idle" && (
+                      <motion.button 
+                        className="decline-button" 
+                        initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, x: 20 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }} 
+                        onClick={disconnectSession}
+                        aria-label="Decline Call"
+                      >
+                        <PhoneOff />
+                      </motion.button>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <span className="mic-caption">{connectionState === "idle" ? "Tap to speak" : "Tap to mute / decline"}</span>
               </div>
             </div>
 
@@ -1962,9 +2005,6 @@ export default function App() {
                 aria-label="Home page"
               >
                 <Home className="w-[26px] h-[26px]" />
-                {currentScreen === "welcome" && (
-                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
-                )}
               </button>
 
               <button 
@@ -1973,9 +2013,6 @@ export default function App() {
                 aria-label="API Credentials page"
               >
                 <Key className="w-[26px] h-[26px]" />
-                {currentScreen === "connect" && (
-                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
-                )}
               </button>
 
               <button 
@@ -1984,9 +2021,6 @@ export default function App() {
                 aria-label="Configuration settings page"
               >
                 <Settings className="w-[26px] h-[26px]" />
-                {currentScreen === "configure" && (
-                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
-                )}
               </button>
 
               <button 
@@ -2003,9 +2037,6 @@ export default function App() {
                 aria-label="Live Voice Assistant page"
               >
                 <Mic className="w-[26px] h-[26px]" />
-                {currentScreen === "voicechat" && (
-                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
-                )}
               </button>
             </nav>
           )}

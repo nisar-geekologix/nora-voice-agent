@@ -4,11 +4,14 @@ import {
   MicOff,
   Settings,
   Key,
+  Home,
   Check,
   ArrowRight,
   Languages,
   Menu,
   ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   User,
   Volume2,
   Lock,
@@ -88,6 +91,69 @@ export const SIMPLE_LANGUAGES = [
   { id: "English", name: "English", label: "English" }
 ];
 
+export const TELECALLER_ROLES = [
+  {
+    category: "Real Estate",
+    label: "🏢 Real Estate Consultant",
+    role: "You are a professional Real Estate Tele-consultant. Your goal is to talk to prospective buyers, explain features of premium residential and commercial properties, understand their location and budget preferences, and book site visits. Keep your tone polite, informative, and inviting."
+  },
+  {
+    category: "Banking & Finance",
+    label: "💳 Credit Card Sales Agent",
+    role: "You are an expert Credit Card Sales Executive. Your goal is to explain the benefits of cards (e.g. cashback, reward points, airport lounge access), answer questions about fees and interest rates, check customer eligibility criteria, and help them complete their application."
+  },
+  {
+    category: "Banking & Finance",
+    label: "💰 Personal & Home Loan Officer",
+    role: "You are a Loans & Mortgage Advisor. Your goal is to guide customers through personal, home, and auto loan options, explain current interest rates, tenure schemes, and outline the necessary documents required for approval."
+  },
+  {
+    category: "Insurance",
+    label: "🛡️ Life & Health Insurance Advisor",
+    role: "You are a dedicated Insurance Tele-Advisor. Your goal is to present life and health insurance plans, explain how the coverage protects their family, answer questions about premium rates and claims settlement processes, and generate leads."
+  },
+  {
+    category: "Education & EdTech",
+    label: "🎓 EdTech Course Counselor",
+    role: "You are an Academic Counselor for an online learning platform. Your goal is to speak to students and parents, guide them on suitable educational courses, explain learning outcomes, mentorship benefits, job guarantees, and assist with enrollment."
+  },
+  {
+    category: "Healthcare",
+    label: "🏥 Health Checkup & Wellness Coordinator",
+    role: "You are a Patient Care Relationship Executive. Your goal is to inform clients about preventive medical health checkup packages, explain specific laboratory tests included, and assist in scheduling diagnostic clinic appointments."
+  },
+  {
+    category: "Telecom & Internet",
+    label: "📶 Telecom & Broadband Agent",
+    role: "You are a Broadband & Fiber Sales Representative. Your goal is to sell high-speed internet connections, introduce current promotional offers, explain data speed options, and record booking information for connection setup."
+  },
+  {
+    category: "Travel & Tourism",
+    label: "✈️ Travel & Holiday Consultant",
+    role: "You are a Travel Package Consultant. Your goal is to pitch exciting international and domestic holiday tour packages, explain itineraries (hotels, sightseeing, meals), offer special group discounts, and process booking inquiries."
+  },
+  {
+    category: "Automobile",
+    label: "🚗 Car Booking & Service Scheduling Agent",
+    role: "You are an Automobile Tele-sales Executive. Your goal is to follow up with showroom leads, schedule test drives for new car models, answer questions about features and discounts, or schedule vehicle maintenance services."
+  },
+  {
+    category: "E-commerce & Retail",
+    label: "📦 E-commerce Customer Care & Verification Agent",
+    role: "You are an Order Verification Specialist. Your goal is to contact customers to confirm cash-on-delivery (COD) shipping addresses, verify order details, resolve customer delivery queries, and provide status updates on packages."
+  },
+  {
+    category: "B2B Software & IT",
+    label: "💼 B2B Inside Sales Executive",
+    role: "You are a professional B2B Inside Sales Caller. Your goal is to call corporate prospects, present software and digital solutions (SaaS), handle initial objections, and schedule product demonstrations for the technical sales team."
+  },
+  {
+    category: "Debt Collection",
+    label: "📞 Payment Reminder & Recovery Executive",
+    role: "You are a polite yet assertive Payment Follow-up Representative. Your goal is to remind customers of upcoming or overdue bills, explain payment options, negotiate payment timelines, and record payment commitments."
+  }
+];
+
 const SUCCESS_ANIMATION = {
   v: "5.7.4", fr: 60, ip: 0, op: 72, w: 100, h: 100, nm: "success",
   layers: [{
@@ -113,6 +179,19 @@ export default function App() {
   // --- Screen Navigation ---
   // "welcome" (1) -> "connect" (2) -> "configure" (3) -> "voicechat" (4)
   const [currentScreen, setCurrentScreen] = useState<"welcome" | "connect" | "configure" | "voicechat">("welcome");
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // --- Responsive View Detection ---
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // --- Extended Agent Settings State ---
   const [settings, setSettings] = useState<AgentSettings & {
@@ -725,20 +804,20 @@ export default function App() {
   // Custom Suggestion Prompts based on selected Language
   const suggestionsList = settings.language === "Hinglish" 
     ? [
-        { label: "🏏 Cricket schedule", text: "India ke next cricket match ka kya schedule hai?" },
-        { label: "🍵 Tea recipe", text: "Ginger masala chai aur quick dynamic snack recipe batao." },
-        { label: "🛺 Auto Bhaiya story", text: "Mumbai auto drivers ke funny and cheeky incidents sunaiye." }
+        { label: "🌦️ Weather check", text: "Aaj ka weather kaisa rahega aur kya baarish hone ke chances hain?" },
+        { label: "📅 Daily productivity", text: "Aaj ke din ko productively manage karne ke liye kuch time-management tips do." },
+        { label: "💡 Motivational quote", text: "Kuch motivational aur energetic quotes sunao jo din bana de." }
       ]
     : settings.language === "Hindi"
     ? [
-        { label: "🇮🇳 ऐतिहासिक कहानियां", text: "झांसी की रानी लक्ष्मीबाई की वीरता का संक्षिप्त वृत्तांत बताएं।" },
-        { label: "👵 दादी माँ के नुस्खे", text: "सर्दी और गले की खराश के लिए दादी मां के उत्तम घरेलू नुस्खे क्या हैं?" },
-        { label: "🧘 ध्यान मार्ग", text: "प्रातः काल उठकर मानसिक शांति और ध्यान के लिए उत्तम विधि समझाएं।" }
+        { label: "🌦️ आज का मौसम", text: "मेरे स्थान पर आज का मौसम कैसा है और क्या बारिश होने की संभावना है?" },
+        { label: "📅 दैनिक योजना", text: "आज के दिन को उत्पादक बनाने के लिए एक अच्छा टाइम-टेबल कैसे सेट करें?" },
+        { label: "💡 प्रेरक विचार", text: "मुझे प्रेरित करने के लिए आज का कोई अच्छा सुविचार या सकारात्मक सीख बताएं।" }
       ]
     : [
-        { label: "💼 Productivity tips", text: "What are the top 3 productivity habits for working from home?" },
-        { label: "🧠 Life principles", text: "Explain Socrates dialetic method in extremely simple modern words." },
-        { label: "🍿 Fun trivia", text: "Tell me a mind-blowing space trivia in short conversational words." }
+        { label: "🌦️ Weather forecast", text: "What is the weather forecast for today in my current area?" },
+        { label: "📅 Focus & productivity", text: "Give me a simple 5-step checklist to stay focused on high-priority tasks today." },
+        { label: "💡 Daily motivation", text: "Share a powerful quote about perseverance and success, and explain its meaning." }
       ];
 
   const legacyUi = (
@@ -1582,180 +1661,221 @@ export default function App() {
     </div>
   );
 
-  return (
-    <div className="nora-app">
-      <div className="nora-ambient nora-ambient-one" />
-      <div className="nora-ambient nora-ambient-two" />
+  const renderActiveScreen = () => {
+    const panelHeight = isMobile ? (isChatOpen ? 320 : 0) : 250;
+    return (
+      <AnimatePresence mode="wait">
+        {currentScreen === "welcome" && (
+          <motion.section
+            key="welcome"
+            className="nora-screen nora-welcome"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+          >
+            <Brand />
 
-      <main className="nora-phone">
-        <div className="nora-statusbar" aria-hidden="true">
-          <span>9:41</span>
-          <div className="nora-status-icons">
-            <span className="nora-signal">▮▮▮▮</span>
-            <span>⌁</span>
-            <span className="nora-battery" />
-          </div>
-        </div>
+            <div className="hero-orb-wrap">
+              <NoraOrb size="large" active />
+            </div>
 
-        <AnimatePresence mode="wait">
-          {currentScreen === "welcome" && (
-            <motion.section
-              key="welcome"
-              className="nora-screen nora-welcome"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-            >
-              <Brand />
+            <div className="welcome-copy">
+              <h1>Speak.<br /><span>Nora responds.</span></h1>
+              <p>Your intelligent voice assistant that listens, understands, and responds instantly.</p>
+            </div>
 
-              <div className="hero-orb-wrap">
-                <div className="sound-wave sound-wave-left" />
-                <div className="sound-wave sound-wave-right" />
-                <NoraOrb size="large" active />
+            <div className="screen-footer">
+              <div className="step-dots"><i className="active" /><i /><i /><i /></div>
+              <motion.button className="primary-button" whileHover={{ y: -3, scale: 1.015 }} whileTap={{ scale: 0.92 }} transition={{ type: "spring", stiffness: 430, damping: 18 }} onClick={() => setCurrentScreen("connect")}>
+                Get Started <ArrowRight />
+              </motion.button>
+            </div>
+          </motion.section>
+        )}
+
+        {currentScreen === "connect" && (
+          <motion.section
+            key="connect"
+            className="nora-screen"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+          >
+            <Brand />
+            <div className="screen-heading">
+              <span className="eyebrow">Step 2 of 4</span>
+              <h1>Connect <span>API</span></h1>
+              <h2>Power Nora with Gemini</h2>
+              <p>Connect your Gemini API key to get started.</p>
+            </div>
+
+            <div className="api-card">
+              <div className="floating-icon"><Key /></div>
+              <label htmlFor="gemini-key">Gemini API Key</label>
+              <div className="key-input">
+                <input
+                  id="gemini-key"
+                  type={isKeyVisible ? "text" : "password"}
+                  value={settings.apiKey}
+                  placeholder={hasServerKey ? "Server key is configured" : "Paste your API key"}
+                  onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
+                />
+                <button onClick={() => setIsKeyVisible((value) => !value)} aria-label="Toggle API key visibility">
+                  {isKeyVisible ? <EyeOff /> : <Eye />}
+                </button>
               </div>
 
-              <div className="welcome-copy">
-                <h1>Speak.<br /><span>Nora responds.</span></h1>
-                <p>Your intelligent voice assistant that listens, understands, and responds instantly.</p>
-              </div>
-
-              <div className="screen-footer">
-                <div className="step-dots"><i className="active" /><i /><i /><i /></div>
-                <motion.button className="primary-button" whileHover={{ y: -3, scale: 1.015 }} whileTap={{ scale: 0.92 }} transition={{ type: "spring", stiffness: 430, damping: 18 }} onClick={() => setCurrentScreen("connect")}>
-                  Get Started <ArrowRight />
-                </motion.button>
-                <p className="privacy-note">Private by design · Powered by Gemini</p>
-              </div>
-            </motion.section>
-          )}
-
-          {currentScreen === "connect" && (
-            <motion.section
-              key="connect"
-              className="nora-screen"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-            >
-              <Brand />
-              <div className="screen-heading">
-                <span className="eyebrow">Step 2 of 4</span>
-                <h1>Connect <span>API</span></h1>
-                <h2>Power Nora with Gemini</h2>
-                <p>Connect your Gemini API key to get started.</p>
-              </div>
-
-              <div className="api-card">
-                <div className="floating-icon"><Key /></div>
-                <label htmlFor="gemini-key">Gemini API Key</label>
-                <div className="key-input">
-                  <input
-                    id="gemini-key"
-                    type={isKeyVisible ? "text" : "password"}
-                    value={settings.apiKey}
-                    placeholder={hasServerKey ? "Server key is configured" : "Paste your API key"}
-                    onChange={(e) => setSettings({ ...settings, apiKey: e.target.value })}
-                  />
-                  <button onClick={() => setIsKeyVisible((value) => !value)} aria-label="Toggle API key visibility">
-                    {isKeyVisible ? <EyeOff /> : <Eye />}
-                  </button>
-                </div>
-
-                <div className={`connection-card ${isKeyReady ? "success" : "waiting"}`}>
-                  <div className="connection-check">{isKeyReady ? <Suspense fallback={<Check />}><Lottie animationData={SUCCESS_ANIMATION} loop={false} /></Suspense> : <Key />}</div>
-                  <div>
-                    <strong>{isKeyReady ? "Connection successful" : "API key required"}</strong>
-                    <span>{isKeyReady ? "You're all set to go!" : "Enter a valid Gemini API key."}</span>
-                  </div>
+              <div className={`connection-card ${isKeyReady ? "success" : "waiting"}`}>
+                <div className="connection-check">{isKeyReady ? <Suspense fallback={<Check />}><Lottie animationData={SUCCESS_ANIMATION} loop={false} /></Suspense> : <Key />}</div>
+                <div>
+                  <strong>{isKeyReady ? "Connection successful" : "API key required"}</strong>
+                  <span>{isKeyReady ? "You're all set to go!" : "Enter a valid Gemini API key."}</span>
                 </div>
               </div>
+            </div>
 
-              <p className="secure-copy"><Lock /> Your key stays securely on this device.</p>
+            <p className="secure-copy"><Lock /> Your key stays securely on this device.</p>
 
-              <div className="screen-footer compact">
-                <motion.button
-                  className="primary-button"
-                  whileHover={isKeyReady ? { y: -3, scale: 1.015 } : {}}
-                  whileTap={isKeyReady ? { scale: 0.92 } : {}}
-                  transition={{ type: "spring", stiffness: 430, damping: 18 }}
-                  disabled={!isKeyReady}
-                  onClick={() => setCurrentScreen("configure")}
-                >
-                  Continue <ArrowRight />
-                </motion.button>
-                <button className="back-button" onClick={() => setCurrentScreen("welcome")}><ChevronLeft /></button>
-              </div>
-            </motion.section>
-          )}
+            <div className="screen-footer compact">
+              <motion.button
+                className="primary-button"
+                whileHover={isKeyReady ? { y: -3, scale: 1.015 } : {}}
+                whileTap={isKeyReady ? { scale: 0.92 } : {}}
+                transition={{ type: "spring", stiffness: 430, damping: 18 }}
+                disabled={!isKeyReady}
+                onClick={() => setCurrentScreen("configure")}
+              >
+                Continue <ArrowRight />
+              </motion.button>
+            </div>
+          </motion.section>
+        )}
 
-          {currentScreen === "configure" && (
-            <motion.section
-              key="configure"
-              className="nora-screen configure-screen"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
-            >
-              <div className="top-row">
-                <button className="round-button" onClick={() => setCurrentScreen("connect")}><ChevronLeft /></button>
-                <Brand compact />
-                <span className="step-pill">3 / 4</span>
-              </div>
+        {currentScreen === "configure" && (
+          <motion.section
+            key="configure"
+            className="nora-screen configure-screen"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+          >
+            <div className="top-row">
+              <div className="w-10" />
+              <Brand compact />
+              <span className="step-pill">3 / 4</span>
+            </div>
 
-              <div className="screen-heading left">
-                <span className="eyebrow">Make her yours</span>
-                <h1>Configure <span>Nora</span></h1>
-                <p>Shape how your assistant speaks, thinks, and responds.</p>
-              </div>
+            <div className="screen-heading left">
+              <h1>Configure <span>Nora</span></h1>
+              <p>Shape how your assistant speaks, thinks, and responds.</p>
+            </div>
 
-              <div className="config-form">
+            <div className="config-form">
+              <div className="config-group">
                 <FieldLabel icon={<User />} text="Agent Name" />
                 <input className="nora-input" value={settings.name} onChange={(e) => setSettings({ ...settings, name: e.target.value })} />
+              </div>
 
+              <div className="config-group">
                 <FieldLabel icon={<Languages />} text="Language" />
                 <ChipGroup values={["Hindi", "English", "Hinglish"]} selected={settings.language} onSelect={(language) => setSettings({ ...settings, language })} />
+              </div>
 
-                <FieldLabel icon={<Sparkles />} text="Role" />
-                <input className="nora-input" value={settings.role} onChange={(e) => setSettings({ ...settings, role: e.target.value })} />
+              <div className="config-group">
+                <FieldLabel icon={<Sparkles />} text="Industry / Role Template" />
+                <select 
+                  className="nora-input"
+                  value={TELECALLER_ROLES.find(r => r.role === settings.role)?.label || "custom"}
+                  onChange={(e) => {
+                    const selectedLabel = e.target.value;
+                    if (selectedLabel !== "custom") {
+                      const found = TELECALLER_ROLES.find(r => r.label === selectedLabel);
+                      if (found) {
+                        setSettings({ ...settings, role: found.role });
+                      }
+                    }
+                  }}
+                >
+                  <option value="custom">✍️ Custom Persona / Other Role</option>
+                  {TELECALLER_ROLES.map((item) => (
+                    <option key={item.label} value={item.label}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
+              <div className="config-group">
+                <FieldLabel icon={<MessageSquare />} text="Role Instructions Prompt" />
+                <textarea 
+                  className="nora-input py-2 h-16 resize-none" 
+                  value={settings.role} 
+                  onChange={(e) => setSettings({ ...settings, role: e.target.value })}
+                  placeholder="Describe what Nora should say and do..."
+                />
+              </div>
+
+              <div className="config-group">
                 <FieldLabel icon={<Volume2 />} text="Tone" />
                 <ChipGroup values={["Friendly", "Professional", "Casual"]} selected={settings.tone} onSelect={(tone) => setSettings({ ...settings, tone })} />
+              </div>
 
+              <div className="config-group">
                 <FieldLabel icon={<Activity />} text="Personality" />
                 <ChipGroup values={["Empathetic", "Calm", "Smart"]} selected={settings.personality} onSelect={(personality) => setSettings({ ...settings, personality })} />
+              </div>
 
+              <div className="config-group">
                 <FieldLabel icon={<MessageSquare />} text="Response Style" />
                 <ChipGroup values={["Short", "Detailed"]} selected={settings.responseStyle} onSelect={(responseStyle) => setSettings({ ...settings, responseStyle: responseStyle as "Short" | "Detailed" })} />
               </div>
+            </div>
 
-              <motion.button className="primary-button sticky-action" whileHover={{ y: -3, scale: 1.015 }} whileTap={{ scale: 0.92 }} transition={{ type: "spring", stiffness: 430, damping: 18 }} onClick={() => setCurrentScreen("voicechat")}>
-                Save &amp; Start <ArrowRight />
-              </motion.button>
-            </motion.section>
-          )}
-
-          {currentScreen === "voicechat" && (
-            <motion.section
-              key="voicechat"
-              className="nora-screen voice-screen"
-              initial={{ opacity: 0, x: 18 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -18 }}
+            <motion.button
+              className="primary-button sticky-action"
+              whileHover={{ y: -3, scale: 1.015 }}
+              whileTap={{ scale: 0.92 }}
+              transition={{ type: "spring", stiffness: 430, damping: 18 }}
+              onClick={() => {
+                if (!isKeyReady) {
+                  setCurrentScreen("connect");
+                  setErrorMessage("Please enter a valid Gemini API key first.");
+                } else {
+                  setCurrentScreen("voicechat");
+                  initiateVoiceSession();
+                }
+              }}
             >
-              <div className="voice-header">
-                <button className="round-button" onClick={() => { disconnectSession(); setCurrentScreen("configure"); }}><Menu /></button>
-                <Brand compact />
-                <button className="language-pill" onClick={() => setCurrentScreen("configure")}><Globe /> {settings.language}</button>
+              Save &amp; Start <ArrowRight />
+            </motion.button>
+          </motion.section>
+        )}
+
+        {currentScreen === "voicechat" && (
+          <motion.section
+            key="voicechat"
+            className="nora-screen voice-screen"
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -18 }}
+          >
+            <div className="voice-header">
+              <button className="round-button" onClick={() => { disconnectSession(); setCurrentScreen("configure"); }}><Menu /></button>
+              <Brand compact />
+              <button className="language-pill" onClick={() => setCurrentScreen("configure")}><Globe /> {settings.language}</button>
+            </div>
+
+            <div className="voice-stage">
+              <div className="voice-wave" aria-hidden="true">
+                {Array.from({ length: 35 }, (_, index) => {
+                  const energy = Math.min(1, (micLevel + agentLevel) * 7);
+                  const profile = 0.25 + Math.sin((index / 34) * Math.PI) * 0.75;
+                  return <motion.span key={index} animate={{ scaleY: connectionState === "idle" ? 0.18 + profile * 0.18 : 0.35 + profile * (0.8 + energy * 2.8) }} transition={{ type: "spring", stiffness: 260, damping: 18, delay: (index % 6) * 0.012 }} />;
+                })}
               </div>
 
-              <div className="voice-stage">
-                <div className="voice-wave" aria-hidden="true">
-                  {Array.from({ length: 35 }, (_, index) => {
-                    const energy = Math.min(1, (micLevel + agentLevel) * 7);
-                    const profile = 0.25 + Math.sin((index / 34) * Math.PI) * 0.75;
-                    return <motion.span key={index} animate={{ scaleY: connectionState === "idle" ? 0.18 + profile * 0.18 : 0.35 + profile * (0.8 + energy * 2.8) }} transition={{ type: "spring", stiffness: 260, damping: 18, delay: (index % 6) * 0.012 }} />;
-                  })}
-                </div>
+              {/* Upper centered content (Orb & State Copy) */}
+              <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 pt-4">
                 <motion.button className="orb-button" whileHover={{ scale: 1.035 }} whileTap={{ scale: 0.88, rotate: -4 }} transition={{ type: "spring", stiffness: 420, damping: 16 }} onClick={initiateVoiceSession} aria-label="Start or stop voice session">
                   <NoraOrb size="medium" active={connectionState !== "idle"} level={micLevel + agentLevel} />
                 </motion.button>
@@ -1766,38 +1886,291 @@ export default function App() {
                   </h1>
                   <p>{connectionState === "idle" ? "Tap the mic and speak anything" : connectionState === "speaking" ? "You can interrupt anytime" : "Nora is listening"}</p>
                 </div>
+              </div>
 
+              {/* Lower content (Tap to speak button & Caption) pushed down */}
+              <div className="mt-auto flex flex-col items-center pb-12 relative z-10">
                 <motion.button className={`mic-button ${connectionState !== "idle" ? "live" : ""}`} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.82 }} transition={{ type: "spring", stiffness: 500, damping: 16 }} onClick={initiateVoiceSession}>
                   {connectionState === "idle" ? <Mic /> : <MicOff />}
                 </motion.button>
                 <span className="mic-caption">{connectionState === "idle" ? "Tap to speak" : "Tap to stop"}</span>
               </div>
+            </div>
 
-              {errorMessage && <div className="error-banner"><AlertCircle /> {errorMessage}</div>}
+            {errorMessage && <div className="error-banner"><AlertCircle /> {errorMessage}</div>}
 
-              <div className="conversation-panel">
+            {/* Floating arrow button to open the chat transcripts bottom sheet on mobile */}
+            {isMobile && !isChatOpen && (
+              <button 
+                onClick={() => setIsChatOpen(true)}
+                className="absolute bottom-[24px] left-1/2 transform -translate-x-1/2 w-10 h-10 flex items-center justify-center bg-black/75 border border-white/10 rounded-full text-[#a78bfa] hover:text-white shadow-lg shadow-black/50 backdrop-blur-md transition z-40 active:scale-95"
+                aria-label="Open conversation transcripts"
+              >
+                <ChevronUp className="w-5 h-5 animate-bounce" />
+              </button>
+            )}
+
+            <motion.div 
+              className="conversation-panel"
+              animate={{ height: panelHeight }}
+              style={{ borderWidth: isMobile && !isChatOpen ? 0 : 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            >
+              <div className="panel-header" onClick={() => setIsChatOpen(false)}>
                 <div className="panel-handle" />
                 <div className="conversation-title">
                   <div><MessageSquare /><span>Conversation</span></div>
-                  <span className="latency-badge">{latestLatency}ms</span>
-                </div>
-                <div className="messages">
-                  <div className="message-row user-message">
-                    <div className="avatar"><User /></div>
-                    <div className="message-bubble"><small>You said</small><p>{latestUserSaid.replaceAll('"', '')}</p></div>
-                  </div>
-                  <div className="message-row nora-message">
-                    <div className="avatar nora-avatar">N</div>
-                    <div className="message-bubble"><small>{settings.name} responded</small><p>{latestNoraSaid.replaceAll('"', '')}</p></div>
+                  <div className="flex items-center gap-2">
+                    <span className="latency-badge">{latestLatency}ms</span>
+                    <ChevronDown className="w-4 h-4 text-[#a78bfa]" />
                   </div>
                 </div>
               </div>
-            </motion.section>
-          )}
-        </AnimatePresence>
+              
+              <div className="messages">
+                <div className="message-row user-message">
+                  <div className="avatar"><User /></div>
+                  <div className="message-bubble"><small>You said</small><p>{latestUserSaid.replaceAll('"', '')}</p></div>
+                </div>
+                <div className="message-row nora-message">
+                  <div className="avatar nora-avatar">N</div>
+                  <div className="message-bubble"><small>{settings.name} responded</small><p>{latestNoraSaid.replaceAll('"', '')}</p></div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+    );
+  };
 
-        <div className="home-indicator" />
-      </main>
+  return (
+    <div className="nora-app">
+      <div className="nora-ambient nora-ambient-one" />
+      <div className="nora-ambient nora-ambient-two" />
+
+      {isMobile ? (
+        <main className={`nora-phone ${currentScreen !== "voicechat" ? "pb-16" : ""}`}>
+          {renderActiveScreen()}
+
+          {/* MOBILE BOTTOM NAVIGATION BAR */}
+          {currentScreen !== "voicechat" && (
+            <nav className="h-16 bg-[#090710]/95 backdrop-blur-md border-t border-white/5 flex items-center justify-around shrink-0 select-none z-50 absolute bottom-0 left-0 right-0">
+              <button 
+                onClick={() => { disconnectSession(); setCurrentScreen("welcome"); }}
+                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${currentScreen === "welcome" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
+                aria-label="Home page"
+              >
+                <Home className="w-[26px] h-[26px]" />
+                {currentScreen === "welcome" && (
+                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
+                )}
+              </button>
+
+              <button 
+                onClick={() => { disconnectSession(); setCurrentScreen("connect"); }}
+                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${currentScreen === "connect" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
+                aria-label="API Credentials page"
+              >
+                <Key className="w-[26px] h-[26px]" />
+                {currentScreen === "connect" && (
+                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
+                )}
+              </button>
+
+              <button 
+                onClick={() => { disconnectSession(); setCurrentScreen("configure"); }}
+                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${currentScreen === "configure" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
+                aria-label="Configuration settings page"
+              >
+                <Settings className="w-[26px] h-[26px]" />
+                {currentScreen === "configure" && (
+                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
+                )}
+              </button>
+
+              <button 
+                onClick={() => { 
+                  if (!isKeyReady) {
+                    setCurrentScreen("connect");
+                    setErrorMessage("Please enter a valid Gemini API key first.");
+                  } else {
+                    setCurrentScreen("voicechat"); 
+                    initiateVoiceSession();
+                  }
+                }}
+                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${currentScreen === "voicechat" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
+                aria-label="Live Voice Assistant page"
+              >
+                <Mic className="w-[26px] h-[26px]" />
+                {currentScreen === "voicechat" && (
+                  <span className="absolute bottom-1 w-1 h-1 bg-purple-400 rounded-full shadow-[0_0_8px_#a78bfa]" />
+                )}
+              </button>
+            </nav>
+          )}
+        </main>
+      ) : (
+        <div className="bg-[#05030a] min-h-screen text-[#e2e0e7] font-sans selection:bg-purple-950 selection:text-purple-200 flex flex-col justify-start relative overflow-x-hidden w-full">
+          {/* HEADER BAR */}
+          <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 sm:px-12 bg-black/40 backdrop-blur-md sticky top-0 z-50 shrink-0 select-none">
+            <div className="flex items-center gap-3">
+              {/* Neon Purple N Brand representation */}
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-rose-500 flex items-center justify-center shadow-lg shadow-purple-900/40 border border-purple-400/20">
+                <span className="text-white font-serif italic font-bold text-lg leading-none">N</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-md font-bold tracking-tight text-white font-serif italic">Nora AI</span>
+                  <span className="text-[9px] bg-purple-500/15 text-purple-300 font-mono px-1.5 py-0.5 rounded border border-purple-500/30">Bharat Gateway 🇮🇳</span>
+                </div>
+              </div>
+            </div>
+
+            {/* TOP STATUS NAVIGATION AND QUICK INDICATORS */}
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-3 bg-white/[0.03] border border-white/5 px-4 py-1.5 rounded-full text-xs">
+                <div className={`w-2 h-2 rounded-full ${isKeyReady ? "bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500" : "bg-amber-500"}`} />
+                <span className="font-mono text-white/70">
+                  {isKeyReady ? "Gemini Live Ready" : "Gemini Credentials Needed"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1 bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded text-xs font-mono text-purple-300 font-bold">
+                <Activity className="w-3.5 h-3.5 text-purple-400" /> WebClient API
+              </div>
+            </div>
+          </header>
+
+          {/* DASHBOARD GRID CONTAINER */}
+          <main className="max-w-[1550px] w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-4 sm:p-8 z-10">
+            {/* PRESENTATION PANEL (SPAN 4) */}
+            <section className="lg:col-span-4 flex flex-col gap-5 justify-between">
+              <div className="space-y-5">
+                {/* DESIGN META */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 backdrop-blur-xs relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl pointer-events-none" />
+                  <div className="flex items-center gap-2 text-[10px] text-purple-400 uppercase tracking-widest font-mono font-bold mb-2">
+                    <Sparkles className="w-3.5 h-3.5 text-rose-400 animate-pulse" /> Visual Interactive Suite
+                  </div>
+                  <h2 className="text-xl font-serif italic font-bold text-white leading-tight">Interactive Device Sync</h2>
+                  <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                    Experience Nora AI exactly like a native high-fidelity iOS application device view. 
+                    Interact with the forms, select a voice, select languages, and trigger speech capture dynamically.
+                  </p>
+
+                  {/* SCREEN TRIGGER NAV RAIL */}
+                  <div className="mt-6 space-y-2">
+                    <span className="text-[10px] text-white/40 uppercase tracking-wider block font-bold font-mono">Presentational Screen Selector</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => { disconnectSession(); setCurrentScreen("welcome"); }}
+                        className={`py-2 px-3 rounded-lg border text-left text-xs transition-all flex items-center justify-between ${currentScreen === "welcome" ? "bg-gradient-to-r from-purple-950 to-indigo-950 border-purple-500/50 text-white font-bold" : "bg-black/40 border-white/5 text-white/40 hover:text-white"}`}
+                      >
+                        <span>1. Welcome onboarding</span>
+                        <span className="text-[8px] bg-white/10 px-1 rounded">Active</span>
+                      </button>
+                      <button 
+                        onClick={() => { disconnectSession(); setCurrentScreen("connect"); }}
+                        className={`py-2 px-3 rounded-lg border text-left text-xs transition-all flex items-center justify-between ${currentScreen === "connect" ? "bg-gradient-to-r from-purple-950 to-indigo-950 border-purple-500/50 text-white font-bold" : "bg-black/40 border-white/5 text-white/40 hover:text-white"}`}
+                      >
+                        <span>2. Connect Gemini API</span>
+                        {isKeyReady && <Check className="w-3 h-3 text-emerald-400" />}
+                      </button>
+                      <button 
+                        onClick={() => { disconnectSession(); setCurrentScreen("configure"); }}
+                        className={`py-2 px-3 rounded-lg border text-left text-xs transition-all flex items-center justify-between ${currentScreen === "configure" ? "bg-gradient-to-r from-purple-950 to-indigo-950 border-purple-500/50 text-white font-bold" : "bg-black/40 border-white/5 text-white/40 hover:text-white"}`}
+                      >
+                        <span>3. Configure Nora</span>
+                        <span className="text-[9px] text-purple-300 font-mono italic">{settings.language}</span>
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (!isKeyReady) {
+                            setCurrentScreen("connect");
+                            setErrorMessage("Please enter a valid Gemini API key first.");
+                          } else {
+                            setCurrentScreen("voicechat");
+                            initiateVoiceSession();
+                          }
+                        }}
+                        className={`py-2 px-3 rounded-lg border text-left text-xs transition-all flex items-center justify-between ${currentScreen === "voicechat" ? "bg-gradient-to-r from-purple-950 to-indigo-950 border-purple-500/50 text-white font-bold animate-pulse" : "bg-black/40 border-white/5 text-white/40 hover:text-white"}`}
+                      >
+                        <span>4. Voice Stream Live</span>
+                        {connectionState !== "idle" && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* LIVE TELEMETRY ENGINE */}
+                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 space-y-4">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                    <span className="text-[10px] text-white/40 uppercase tracking-widest font-mono font-bold">Latency Diagnostics</span>
+                    <span className="text-[9px] bg-purple-500/20 text-purple-300 font-mono font-bold px-1.5 rounded uppercase">Dual Channel</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
+                      <span className="text-[9px] text-white/40 font-mono block uppercase">Client Ping</span>
+                      <div className="text-lg font-mono font-bold text-white mt-0.5">
+                        {metrics.currentPingMs ? `${metrics.currentPingMs} ms` : "120 ms"}
+                      </div>
+                      <p className="text-[8px] text-white/30 block mt-1">WebSocket server return trip time</p>
+                    </div>
+
+                    <div className="bg-black/30 border border-white/5 rounded-lg p-3">
+                      <span className="text-[9px] text-white/40 font-mono block uppercase">Time to First Byte</span>
+                      <div className="text-lg font-mono font-bold text-purple-400 mt-0.5">
+                        {metrics.timeToFirstByteMs ? `${metrics.timeToFirstByteMs} ms` : "120 ms"}
+                      </div>
+                      <p className="text-[8px] text-white/30 block mt-1">Audio speech packet latency</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 pt-2 border-t border-white/5">
+                    <div className="flex justify-between text-[10px] text-white/50 font-mono">
+                      <span>Packet Sent count:</span>
+                      <span className="text-white font-bold">{metrics.audioChunksSent} chunks</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-white/50 font-mono">
+                      <span>Packet Received count:</span>
+                      <span className="text-purple-400 font-bold">{metrics.audioChunksReceived} chunks</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-white/50 font-mono">
+                      <span>Conversational barge-ins:</span>
+                      <span className="text-rose-450 font-bold">{userInterruptedCount} interrupted</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SELECTION ASSISTANCE MANUAL */}
+                <div className="bg-purple-950/20 border border-purple-500/10 rounded-2xl p-5 space-y-2">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-rose-450 font-bold block">🚨 Quick Setup Manual</span>
+                  <p className="text-[11px] text-white/60 leading-relaxed">
+                    To chat, simply select <strong>Configure Nora</strong> page, choose language <strong>Hinglish / Hindi / English</strong>, customized roles, and click <strong>Save &amp; Start</strong>. Press the central glowing pink microphone button inside the device to toggle stream live instantly!
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-white/20 font-mono mt-4">
+                VoxGemini Bharat v2.1 • Created in high-contrast cosmic luxury design
+              </p>
+            </section>
+
+            {/* RIGHT COLUMN: SCREEN CARDS (NO PHONE SIMULATOR FRAME) */}
+            <section className="lg:col-span-8 flex justify-center items-stretch p-2 sm:p-6 bg-white/[0.01] border border-white/5 rounded-3xl backdrop-blur-xs relative overflow-hidden min-h-[750px]">
+              <div className="absolute inset-0 bg-[#07050d] transition-all duration-500" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(139,92,246,0.1)_0%,_transparent_55%)] pointer-events-none" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,_rgba(244,63,94,0.06)_0%,_transparent_60%)] pointer-events-none" />
+              
+              <div className="flex-1 w-full bg-[#090710] px-5 sm:px-6 py-4 overflow-y-auto relative z-30 flex flex-col justify-between select-none min-h-[680px] rounded-3xl border border-white/5">
+                {renderActiveScreen()}
+              </div>
+            </section>
+          </main>
+        </div>
+      )}
     </div>
   );
 }
@@ -1824,7 +2197,32 @@ function NoraOrb({ size, active = false, level = 0 }: { size: "large" | "medium"
         <motion.i className="orb-pulse pulse-two" animate={{ scale: [1, 1.28, 1.55], opacity: [.34, .12, 0] }} transition={{ duration: 1.8, delay: .65, repeat: Infinity, ease: "easeOut" }} />
         {Array.from({ length: 8 }, (_, index) => <motion.i key={index} className="voice-particle" style={{ rotate: `${index * 45}deg` }} animate={{ y: [0, -(15 + (index % 3) * 7), 0], opacity: [.2, .95, .2], scale: [.7, 1.25, .7] }} transition={{ duration: 1.4 + (index % 3) * .2, delay: index * .08, repeat: Infinity }} />)}
       </>}
-      <div className="orb-glass"><span>N</span></div>
+      <div className="orb-glass">
+        {/* Real-time soundwave bars inside the glass instead of a static 'N' logo */}
+        <div className="flex items-center justify-center gap-1 h-10 select-none pointer-events-none">
+          {Array.from({ length: 5 }, (_, i) => {
+            const baselineHeight = [10, 18, 26, 18, 10][i];
+            return (
+              <motion.div
+                key={i}
+                className="w-[3px] rounded-full bg-gradient-to-t from-white to-purple-200 shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                style={{ height: baselineHeight }}
+                animate={active ? {
+                  scaleY: [1, 1.4 + level * 3, 0.4, 1],
+                } : {
+                  scaleY: [1, 1.12, 0.88, 1]
+                }}
+                transition={{
+                  duration: active ? 0.5 + i * 0.08 : 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.08
+                }}
+              />
+            );
+          })}
+        </div>
+      </div>
     </motion.div>
   );
 }

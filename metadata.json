@@ -1,0 +1,6 @@
+{
+  "name": "Gemini Realtime Voice Agent",
+  "description": "An interactive, low-latency, real-time voice-to-voice AI agent featuring customizable speaker profiles, persistent configuration, and diagnostic performance metrics.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

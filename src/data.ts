@@ -1,6 +1,7 @@
 import { AudioVoice } from "./types";
 
 export const VOICES_CATALOG: AudioVoice[] = [
+  { id: "Aoede", name: "Aoede", description: "Clear, bright, and warm voice", gender: "Female" },
   { id: "Zephyr", name: "Zephyr", description: "Enthusiastic, clear, and warm voice", gender: "Female" },
   { id: "Puck", name: "Puck", description: "Friendly, casual, and energetic voice", gender: "Male" },
   { id: "Charon", name: "Charon", description: "Deep, soothing, and authoritative voice", gender: "Male" },

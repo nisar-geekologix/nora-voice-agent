@@ -1274,6 +1274,22 @@ export default function App() {
                           </div>
                         </div>
 
+                        {/* Voice Selection */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] uppercase tracking-wider text-[#e2e0e7]/40 font-bold block">Voice Agent</label>
+                          <select 
+                            value={settings.voice}
+                            onChange={(e) => setSettings((s) => ({ ...s, voice: e.target.value }))}
+                            className="w-full bg-[#120f1c] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-hidden focus:ring-1 focus:ring-purple-500/50"
+                          >
+                            {VOICES_CATALOG.map((v) => (
+                              <option key={v.id} value={v.id}>
+                                {v.name} ({v.gender}) - {v.description}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
                         {/* Helper alert highlighting why Hinglish is awesome */}
                         {settings.language === "Hinglish" && (
                           <div className="bg-purple-500/5 border border-purple-500/10 p-2.5 rounded-lg text-[9px] text-purple-300 leading-normal flex items-start gap-1.5">
@@ -1798,6 +1814,21 @@ export default function App() {
               <div className="config-group">
                 <FieldLabel icon={<Languages />} text="Language" />
                 <ChipGroup values={["Hindi", "English", "Hinglish"]} selected={settings.language} onSelect={(language) => setSettings({ ...settings, language })} />
+              </div>
+
+              <div className="config-group">
+                <FieldLabel icon={<Volume2 />} text="Voice Agent" />
+                <select 
+                  className="nora-input"
+                  value={settings.voice}
+                  onChange={(e) => setSettings({ ...settings, voice: e.target.value })}
+                >
+                  {VOICES_CATALOG.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({v.gender}) - {v.description}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="config-group">

@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #0D0D0F;
+    --surface-card: #14131A;
+    --primary-purple: #7B5CFF;
+    --secondary-purple: #A78BFA;
+  }
+
+  body {
+    background-color: var(--bg-dark);
+    color: #F5F5F7;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphism & Card utilities */
+.glass-panel {
+  background: rgba(20, 19, 26, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-glow {
+  background: rgba(20, 19, 26, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(123, 92, 255, 0.3);
+  box-shadow: 0 0 30px rgba(123, 92, 255, 0.15);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #7B5CFF 0%, #6340FF 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(123, 92, 255, 0.35);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 25px rgba(123, 92, 255, 0.5);
+  background: linear-gradient(135deg, #8B6EFF 0%, #704EFF 100%);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Ambient glow blobs */
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glow-purple {
+  background: radial-gradient(circle, rgba(123, 92, 255, 0.25) 0%, rgba(123, 92, 255, 0) 70%);
+}
+
+/* Audio waveform animation bars */
+@keyframes pulseWave {
+  0%, 100% { height: 10px; opacity: 0.5; }
+  50% { height: 42px; opacity: 1; }
+}
+
+.wave-bar {
+  width: 4px;
+  background: linear-gradient(180deg, #7B5CFF 0%, #A78BFA 100%);
+  border-radius: 9999px;
+  animation: pulseWave 1.2s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0D0F;
+}
+::-webkit-scrollbar-thumb {
+  background: #272535;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7B5CFF;
+}

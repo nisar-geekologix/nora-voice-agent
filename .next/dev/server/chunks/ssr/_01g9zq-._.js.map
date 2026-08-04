@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///E:/Nisar/nora/src/app/layout.tsx"],"sourcesContent":["import \"../index.css\";\nimport { type ReactNode } from \"react\";\n\nexport const metadata = {\n  title: \"Nora AI Voice Platform\",\n  description: \"Enterprise Voice Agents and Automation Gateway\",\n};\n\nexport default function RootLayout({ children }: { children: ReactNode }) {\n  return (\n    <html lang=\"en\" className=\"dark\" suppressHydrationWarning>\n      <body suppressHydrationWarning>\n        {children}\n      </body>\n    </html>\n  );\n}\n"],"names":["metadata","title","description","RootLayout","children","lang","className","suppressHydrationWarning"],"mappings":";;;;;;;;;AAGO,MAAMA,WAAW;IACtBC,OAAO;IACPC,aAAa;AACf;AAEe,SAASC,WAAW,EAAEC,QAAQ,EAA2B;IACtE,qBACE,8OAAC;QAAKC,MAAK;QAAKC,WAAU;QAAOC,wBAAwB;kBACvD,cAAA,8OAAC;YAAKA,wBAAwB;sBAC3BH;;;;;;;;;;;AAIT"}},
+    {"offset": {"line": 44, "column": 0}, "map": {"version":3,"sources":["file:///E:/Nisar/nora/node_modules/next/src/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-rsc']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0]}}]
+}

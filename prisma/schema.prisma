@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model NoraUser {
+  id        String   @id @default(uuid())
+  orgName   String?
+  createdAt DateTime @default(now())
+  agents    Agent[]
+}
+
+model Agent {
+  id                String        @id @default(uuid())
+  userId            String
+  user              NoraUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  systemInstruction String        @db.Text
+  model             String        @default("gemini-3.1-flash-live-preview")
+  voice             String        @default("Zephyr")
+  temperature       Float         @default(0.7)
+  createdAt         DateTime      @default(now())
+  phoneNumbers      PhoneNumber[]
+  calls             Call[]
+}
+
+model PhoneNumber {
+  phoneNumber String   @id
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  status      String   @default("active")
+  updatedAt   DateTime @updatedAt
+}
+
+model Call {
+  id            String   @id @default(uuid())
+  twilioCallSid String   @unique
+  agentId       String
+  agent         Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  direction     String   // "inbound" | "outbound"
+  fromNumber    String
+  toNumber      String
+  status        String
+  durationSec   Int      @default(0)
+  transcript    Json     // Array of dialogue objects
+  summary       String?  @db.Text
+  sentiment     String?
+  recordingUrl  String?
+  createdAt     DateTime @default(now())
+}

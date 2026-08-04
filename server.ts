@@ -2,7 +2,8 @@ import express from "express";
 import http from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import next from "next";
+import { PrismaClient } from "@prisma/client";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import {
@@ -18,7 +19,51 @@ import {
 
 dotenv.config();
 
+const prisma = new PrismaClient();
+
+
 async function startServer() {
+  const dev = process.env.NODE_ENV !== "production";
+  const nextApp = next({ dev });
+  await nextApp.prepare();
+  const handle = nextApp.getRequestHandler();
+
+  // Seed default data if empty
+  try {
+    const userCount = await prisma.noraUser.count();
+    if (userCount === 0) {
+      console.log("Database is empty. Seeding default organization and voice agent...");
+      const defaultUser = await prisma.noraUser.create({
+        data: {
+          orgName: "Default Organization"
+        }
+      });
+      
+      const defaultAgent = await prisma.agent.create({
+        data: {
+          userId: defaultUser.id,
+          name: "Nora",
+          systemInstruction: "You are a warm, helpful conversational AI voice assistant named Nora. Speak in friendly Hinglish.",
+          voice: "Zephyr",
+          model: "gemini-3.1-flash-live-preview"
+        }
+      });
+      
+      const twilioNumber = process.env.TWILIO_NUMBER || "";
+      if (twilioNumber) {
+        await prisma.phoneNumber.create({
+          data: {
+            phoneNumber: twilioNumber,
+            agentId: defaultAgent.id
+          }
+        });
+      }
+      console.log("Default seed completed successfully!");
+    }
+  } catch (err) {
+    console.error("Failed to run seed script during startup:", err);
+  }
+
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
   const server = http.createServer(app);
@@ -32,14 +77,34 @@ async function startServer() {
   });
 
   // Dynamic TwiML response endpoint for Twilio calls
-  app.all("/api/twilio-twiml", (req, res) => {
+  app.all("/api/twilio-twiml", async (req, res) => {
     const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "wss" : "ws";
+    const dialedNumber = req.query.To || req.body.To || "";
+    let agentId = "";
+    let voice = "Polly.Aditi";
+    let message = "Connecting you to Nora AI. Please wait...";
+
+    try {
+      if (dialedNumber) {
+        const route = await prisma.phoneNumber.findUnique({
+          where: { phoneNumber: String(dialedNumber) },
+          include: { agent: true }
+        });
+        if (route && route.agent) {
+          agentId = route.agent.id;
+          message = `Connecting you to ${route.agent.name || "Nora"}. Please wait...`;
+        }
+      }
+    } catch (err) {
+      console.error("Failed to query phoneNumber route from database:", err);
+    }
+
     res.type("text/xml");
     res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Say voice="Polly.Aditi">Connecting you to Nora AI. Please wait...</Say>
+    <Say voice="${voice}">${message}</Say>
     <Connect>
-        <Stream url="${protocol}://${req.headers.host}/api/live-twilio" />
+        <Stream url="${protocol}://${req.headers.host}/api/live-twilio${agentId ? `?agentId=${agentId}` : ""}" />
     </Connect>
 </Response>`);
   });
@@ -67,6 +132,9 @@ async function startServer() {
       wssTwilio.handleUpgrade(request, socket, head, (ws) => {
         wssTwilio.emit("connection", ws, request);
       });
+    } else if (pathname.startsWith("/_next")) {
+      // Let Next.js HMR handlers process webpack-hmr upgrades
+      return;
     } else {
       socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
       socket.destroy();
@@ -222,9 +290,28 @@ async function startServer() {
 
     const requestUrl = new URL(req.url || "", `http://${req.headers.host || "localhost"}`);
     const clientProvidedKey = requestUrl.searchParams.get("apiKey") || "";
-    const voice = requestUrl.searchParams.get("voice") || "Zephyr";
-    const systemInstruction = requestUrl.searchParams.get("systemInstruction") || "You are a helpful voice assistant.";
-    const model = requestUrl.searchParams.get("model") || "gemini-3.1-flash-live-preview";
+    const agentId = requestUrl.searchParams.get("agentId") || "";
+
+    let voice = "Zephyr";
+    let systemInstruction = "You are a helpful voice assistant.";
+    let model = "gemini-3.1-flash-live-preview";
+
+    // Load agent from database if agentId is provided
+    if (agentId) {
+      try {
+        const agent = await prisma.agent.findUnique({
+          where: { id: agentId }
+        });
+        if (agent) {
+          voice = agent.voice || "Zephyr";
+          systemInstruction = agent.systemInstruction || systemInstruction;
+          model = agent.model || model;
+          console.log(`Loaded agent ${agent.name} config from database for Twilio call.`);
+        }
+      } catch (err) {
+        console.error("Failed to load agent config from database:", err);
+      }
+    }
 
     const apiKey = clientProvidedKey.trim() || process.env.GEMINI_API_KEY || "";
 
@@ -236,6 +323,7 @@ async function startServer() {
 
     let streamSid = "";
     let session: any = null;
+    let callRecordId = "";
 
     try {
       const ai = new GoogleGenAI({
@@ -318,13 +406,42 @@ async function startServer() {
       });
 
       // Listen to messages from Twilio
-      clientWs.on("message", (rawMessage) => {
+      clientWs.on("message", async (rawMessage) => {
         try {
           const parsed = JSON.parse(rawMessage.toString());
 
           if (parsed.event === "start") {
             streamSid = parsed.start.streamSid;
-            console.log(`Twilio stream started with streamSid: ${streamSid}`);
+            const twilioCallSid = parsed.start.callSid;
+            console.log(`Twilio stream started with streamSid: ${streamSid}, callSid: ${twilioCallSid}`);
+
+            // Log Call Record in PostgreSQL
+            try {
+              let activeAgent = await prisma.agent.findFirst();
+              if (agentId) {
+                const specAgent = await prisma.agent.findUnique({ where: { id: agentId } });
+                if (specAgent) activeAgent = specAgent;
+              }
+
+              if (activeAgent) {
+                const callRecord = await prisma.call.create({
+                  data: {
+                    twilioCallSid: twilioCallSid,
+                    agentId: activeAgent.id,
+                    direction: "inbound",
+                    fromNumber: process.env.MY_NUMBER || "+917073678964",
+                    toNumber: process.env.TWILIO_NUMBER || "+15709898569",
+                    status: "in-progress",
+                    transcript: []
+                  }
+                });
+                callRecordId = callRecord.id;
+                console.log(`Saved call record to database. ID: ${callRecordId}`);
+              }
+            } catch (dbErr) {
+              console.error("Failed to log call record to database:", dbErr);
+            }
+
           } else if (parsed.event === "media") {
             if (!session) return;
 
@@ -347,18 +464,37 @@ async function startServer() {
             if (session) {
               session.close();
             }
+            if (callRecordId) {
+              try {
+                await prisma.call.update({
+                  where: { id: callRecordId },
+                  data: { status: "completed" }
+                });
+                console.log("Updated call record status to completed.");
+              } catch (dbErr) {
+                console.error("Failed to update call status to completed:", dbErr);
+              }
+            }
           }
         } catch (err) {
           console.error("Error processing Twilio WebSocket message:", err);
         }
       });
 
-      clientWs.on("close", () => {
+      clientWs.on("close", async () => {
         console.log("Twilio connection closed. Cleaning up Gemini session.");
         if (session) {
           try {
             session.close();
           } catch (e) {}
+        }
+        if (callRecordId) {
+          try {
+            await prisma.call.update({
+              where: { id: callRecordId },
+              data: { status: "completed" }
+            });
+          } catch (dbErr) {}
         }
       });
 
@@ -368,22 +504,10 @@ async function startServer() {
     }
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-    console.log("Vite dev middleware attached.");
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-    console.log("Serving static production files from dist directory.");
-  }
+  // Next.js page handler for all other routes
+  app.all("*", (req, res) => {
+    return handle(req, res);
+  });
 
   server.listen(PORT, "0.0.0.0", () => {
     console.log(`Application dev server running on http://localhost:${PORT}`);

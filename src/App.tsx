@@ -2064,7 +2064,7 @@ export default function App() {
                     initiateVoiceSession();
                   }
                 }}
-                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${currentScreen === "voicechat" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
+                className={`relative flex flex-col items-center justify-center w-14 h-14 transition ${(currentScreen as string) === "voicechat" ? "text-purple-400" : "text-white/40 hover:text-white"}`}
                 aria-label="Live Voice Assistant page"
               >
                 <Mic className="w-[26px] h-[26px]" />
